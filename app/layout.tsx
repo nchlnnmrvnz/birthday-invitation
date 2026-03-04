@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dandannnnn's 29th Birthday!",
+  title: "Dandannnnn",
   description: "An online birthday invitation to Danniel Demayo's 29th birthday celebration.",
 };
 
