@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { fakeFS, File, Folder } from "@/lib/fakeFS";
-import { ConfigCategory, getConfig, updateConfig } from "@/lib/config";
+import { ConfigCategory, getConfig, updateConfig } from "@/services/config";
+import { fetchGreeting } from "@/services/greeting";
 
 export default function Terminal({ onDone }: { onDone: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -492,16 +493,7 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
         }
 
         try {
-          const res = await fetch(
-            `/api/greetings/${monthName.toUpperCase()}/${day}`
-          );
-
-          if (!res.ok) {
-            throw new Error("Not found");
-          }
-
-          const json = await res.json();
-          const greeting = json.data;
+          const greeting = await fetchGreeting(monthName.toUpperCase(), day);
 
           setAwaitingPassword({
             content: greeting.message,
