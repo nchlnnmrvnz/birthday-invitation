@@ -277,11 +277,7 @@ export const fakeFS: Folder = {
               type: "file"
             }
           },
-        },
-        "README.md": { 
-          type: "file", 
-          content: "This is the 2026 folder README" 
-        },
+        }
       },
     },
   },
