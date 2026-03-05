@@ -680,7 +680,7 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
       }
     }}
     >
-      <div className="whitespace-pre-wrap w-full max-w-xl mx-auto">
+      <div className="whitespace-pre-wrap w-full max-w-sm overflow-y-scroll mx-auto">
         {history.map((line, i) => (
           <div key={i}>{line}</div>
         ))}
