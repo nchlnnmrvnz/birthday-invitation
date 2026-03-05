@@ -671,7 +671,7 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
 
   return (
   <div
-    className="bg-black font-mono p-6"
+    className="bg-black h-screen font-mono p-6"
     ref={containerRef}
     onClick={() => {
       inputRef.current?.focus();
