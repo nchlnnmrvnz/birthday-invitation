@@ -9,6 +9,7 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [cursorIndex, setCursorIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [lines, setLines] = useState<string[]>([]);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
 
   const [history, setHistory] = useState<React.ReactNode[]>([
@@ -40,22 +41,22 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "auto" });
-    setIsUserScrolling(false);
-  }, [input]);
-
-  useEffect(() => {
     inputRef.current?.focus();
   }, [history]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || isUserScrolling) return;
 
+    requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+  }, [history, awaitingPassword]);
+
+  useEffect(() => {
     if (!isUserScrolling) {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: "auto",
+      requestAnimationFrame(() => {
+        endRef.current?.scrollIntoView({ block: "end" });
       });
     }
   }, [history, awaitingPassword]);
@@ -73,13 +74,18 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
     };
   }, []);
 
+  const scrollToBottom = () => {
+    endRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+  };
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "auto" });
+  }, [lines]);
+
   const handleScroll = () => {
     const container = containerRef.current;
     if (!container) return;
-
-    const threshold = 20;
-    const atBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
 
     setIsUserScrolling(!atBottom);
 };
@@ -587,9 +593,6 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    endRef.current?.scrollIntoView({ behavior: "auto" });
-    setIsUserScrolling(false);
-
     if (awaitingPassword) {
       e.preventDefault();
 
@@ -668,19 +671,13 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
 
   return (
   <div
-    className="h-screen flex flex-col bg-black font-mono p-6 overflow-y-scroll justify-center"
+    className="bg-black font-mono p-6"
     ref={containerRef}
     onClick={() => {
       inputRef.current?.focus();
-      if (!isUserScrolling) {
-        const container = containerRef.current;
-        if (container) {
-          container.scrollTop = container.scrollHeight;
-        }
-      }
     }}
     >
-      <div className="whitespace-pre-wrap w-full max-w-sm overflow-y-scroll mx-auto">
+      <div className="whitespace-pre-wrap overflow-y-auto">
         {history.map((line, i) => (
           <div key={i}>{line}</div>
         ))}
@@ -721,9 +718,8 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
           setCursorIndex(e.target.selectionStart ?? 0);
         }}
         onKeyDown={(e) => {
+          scrollToBottom();
           handleKeyDown(e);
-          endRef.current?.scrollIntoView({ behavior: "auto" });
-          setIsUserScrolling(false);
           setTimeout(() => {
             setCursorIndex(inputRef.current?.selectionStart ?? 0);
           }, 0);
