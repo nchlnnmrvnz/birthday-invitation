@@ -680,7 +680,7 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
 
   return (
   <div
-    className="h-screen flex flex-col bg-black font-mono p-6 overflow-y-auto justify-center"
+    className="h-screen flex flex-col bg-black font-mono p-6 overflow-y-scroll justify-center"
     ref={containerRef}
     onClick={() => {
       inputRef.current?.focus();
