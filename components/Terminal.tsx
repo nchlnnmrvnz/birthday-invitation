@@ -37,16 +37,28 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
     [ConfigCategory.JANFEB_UNLOCKED]: false,
   });
 
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "auto" });
+    setIsUserScrolling(false);
+  }, [input]);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, [history]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (container && !isUserScrolling) {
-      container.scrollTop = container.scrollHeight;
+    if (!container) return;
+
+    if (!isUserScrolling) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "auto",
+      });
     }
-  }, [history, awaitingPassword, input, isUserScrolling]);
+  }, [history, awaitingPassword]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -63,11 +75,14 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
 
   const handleScroll = () => {
     const container = containerRef.current;
-    if (container) {
-      const isAtBottom = container.scrollHeight - container.scrollTop === container.clientHeight;
-      setIsUserScrolling(!isAtBottom);
-    }
-  };
+    if (!container) return;
+
+    const threshold = 20;
+    const atBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+
+    setIsUserScrolling(!atBottom);
+};
 
   useEffect(() => {
     async function fetchConfigs() {
@@ -572,6 +587,9 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    endRef.current?.scrollIntoView({ behavior: "auto" });
+    setIsUserScrolling(false);
+
     if (awaitingPassword) {
       e.preventDefault();
 
@@ -625,10 +643,6 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
       const newIndex = historyIndex === null ? cmdHistory.length - 1 : Math.max(0, historyIndex - 1);
       setHistoryIndex(newIndex);
       setInput(cmdHistory[newIndex]);
-
-      const container = containerRef.current;
-      if (container) container.scrollTop = container.scrollHeight;
-      return;
     }
 
     if (e.key === "ArrowDown") {
@@ -642,8 +656,6 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
         setHistoryIndex(newIndex);
         setInput(cmdHistory[newIndex]);
       }
-      const container = containerRef.current;
-      if (container) container.scrollTop = container.scrollHeight;
       return;
     }
 
@@ -668,7 +680,7 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
 
   return (
   <div
-    className="min-h-screen flex items-center justify-center bg-black font-mono p-6 overflow-auto"
+    className="h-screen flex flex-col bg-black font-mono p-6 overflow-y-auto justify-center"
     ref={containerRef}
     onClick={() => {
       inputRef.current?.focus();
@@ -680,7 +692,7 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
       }
     }}
     >
-      <pre>
+      <div className="whitespace-pre-wrap w-full max-w-xl mx-auto">
         {history.map((line, i) => (
           <div key={i}>{line}</div>
         ))}
@@ -710,7 +722,7 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
             </div>
           </div>
         )}
-      </pre>
+      </div>
 
       <input
         ref={inputRef}
@@ -722,12 +734,15 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
         }}
         onKeyDown={(e) => {
           handleKeyDown(e);
+          endRef.current?.scrollIntoView({ behavior: "auto" });
+          setIsUserScrolling(false);
           setTimeout(() => {
             setCursorIndex(inputRef.current?.selectionStart ?? 0);
           }, 0);
-        }}       
+        }}     
         className="absolute opacity-0 pointer-events-none"
       />
+    <div ref={endRef} />
     </div>
   );
 }
