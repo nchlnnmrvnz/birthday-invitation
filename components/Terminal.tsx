@@ -595,24 +595,12 @@ export default function Terminal({ onDone }: { onDone: () => void }) {
 
       if (e.key === "Enter") {
         if (passwordInput === awaitingPassword.password) {
-          const lines: string[] = [];
-
-          const paragraphs = awaitingPassword.content.split(/\r?\n\r?\n/);
-
-          paragraphs.forEach((para) => {
-            const words = para.split(/\s+/);
-            for (let i = 0; i < words.length; i += 15) {
-              lines.push(words.slice(i, i + 15).join(" "));
-            }
-            lines.push("\n");
-          });
-
           setHistory((h) => [
-            ...h,
-            ...lines.map((line, i) => (
-              <div key={i} className="text-white">{line}</div>
-            )),
-          ]);
+          ...h,
+          <div className="text-white whitespace-pre-wrap">
+            {awaitingPassword.content}
+          </div>,
+        ]);
         } else {
           setHistory((h) => [
             ...h,
